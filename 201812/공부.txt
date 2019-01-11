@@ -1,0 +1,173 @@
+Remote Address: 주소  ===>  도메인 네임 시스템
+125.209.222.141===> naver.com
+
+요청-> 문서를 받는 것(html)
+
+멋쟁이사자들처럼
+
+
+AWS
+
+AWS reinvent (컨페런스)
+
+developer + operator = devOps <= 클라우드서비스
+
+elastic road balancer
+
+operation도 중요
+
+
+linux
+	sudo (superuser do)
+	cd (change direction)
+	cd / (최상위 root로 감)
+	컴퓨터공학에서 /(루트)는 제일 위로 가는 것
+	cd ~ (home directory ~)
+	ls 현재 폴더안 리스트
+	clear
+
+flask
+
+오프라인서비스 = 요청과 응답
+웹서비스 = url과 
+
+url structure optimazation
+http://www.seosuccesstips.com/category/article-name/
+(protocol)(sub-domatin)(domain)(slug(articlepermalink)
+요청 받는 사람의 주소:naver.com =누구에게 보낼지
+/xxx =뭘 요청할지가 뒤에 오는것
+/ = 가장 기본이 되는(root) 페이지를 줘
+
+
+Ex) https://search.naver.com/search.nave?query=multicampus
+여기서 search.은 www.과 다른 서버일 수도 있다
+/search.naver : 네이버야 검색해줘
+?뒤에있는 xxx들은 이런 정보를 담아 보낼게(parameter)
+?chat_id=1238123879&text=hello
+?query=xxx 이런 단어를 담아 보낼게 == XXX를 검색해줘
+
+
+routing이란 무엇?
+flask routing?
+
+aws blockchain 자격증 유용
+aws ec2 pricing 아마존컴퓨터
+https://www.ec2instances.info	T2 Micro 공짜 - 서버돌리기엔 ㄱㅊ
+				T2 Medium 표준적인 서버돌리기에 ㄱㅊ
+
+mooc
+coursera
+edX
+cs50
+udacity*** - 머신러닝, 통계학 등등 굿굿
+
+view-source:https://www.naver.com/
+html 문서 구성
+html문서볼수있음
+
+
+검색엔진
+-> 페켓에서 크롤링해서
+크롤러가 중요도 판단해서
+구조적으로 잘 짜놔야함
+구글크롤러가 패킷을 긁었을때 뽑혀나온것들이 중요한것들이 검색해서 핵심내용들이 뜸
+=> seo가 잘돼있는 웹
+예: multicampus vs fastcampus 검색에서 비교
+검색에서 최적화되는 정보가 나와야 검색자들이 쉽게 볼수있고 접근성 good
+이거에 입각해서 좋은 html을짜야해
+옵티미제이션을 남발하게 되면 안돼 =>표준을지켜야
+기준!! 헤더(첫번쨰로 중요한 헤더라고 해서 h1) <h1> </h1> (!!!!마크다운에 잘 적어둬!!!!)
+
+검색알고리즘(구글)->링크 많이사용하면: a태그
+태그가 없는 단계에선 네이버같은것도 순수한 html
+
+css(cascading style sheet) 페이지 예쁘게 만들수있어
+
+
+html
+!하면 기본태그 껍데기 만들어줘!
+
+
+git init
+git add .
+git commit -m "first commit"
+
+
+flask run --host=0.0.0.0 --port=8080
+
+------------------------------------------------
+
+
+3단계 배포
+
+
+0. @app.route('/newyear')
+	return render_template('newyear.html')
+
+1. datetime 오늘의 날짜를 알 수 있다.
+2 {% if 오늘 == 새해(1.1) %}
+	예
+   {%아 아니면 %}
+	아니오 
+
+
+
+
+root route is the convention in the beginning of the html source that goes to index.html약속
+@app.route('/')
+def index():
+	return render_template('index.html')
+
+
+<h1> <h2> <body> <ls> <table> <form> <input>
+{% if dfadsf %}
+{% else %}
+{% endif }
+
+
+msg = request.args.get('msg') 입력값 가져옴
+
+스트링 세가지 - 합체 "" + "" // 수술 {token} // 자르는거
+
+
+
+getUpdates
+
+result": [
+    {
+      "update_id": 107125338,
+      "message": {
+        "message_id": 1,
+        "from": {
+          "id": 779667174, //  내아이디
+          "is_bot": false,
+          "first_name": "싸피맨",
+          "language_code": "ko"
+        },
+        "chat": {
+          "id": 779667174,
+          "first_name": "싸피맨",
+          "type": "private"
+        },
+        "date": 1545273381,
+        "text": "/start",
+        "entities": [
+          {
+            "offset": 0,
+            "length": 6,
+            "type": "bot_command"
+          }
+        ]
+      }
+    }
+
+
+
+
+페이크데이터 만들어주는 패키지 - faker
+
+>>> import faker
+>>> from paker import Faker
+>>> from faker import Faker                                                                                                                                                                                                                     
+>>> app = Flask(__name__)
+

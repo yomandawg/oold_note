@@ -1,0 +1,575 @@
+Python
+
+Web - HTML/CSS
+
+Framework - flask/Django
+
+DB - SQl
+
+
+
+
+
+최종 프로젝트 - Watcha 클론
+
+
+
+MVP - minimum viable product
+
+document oriented model(waterfall model) <=> fail
+
+=> agile 방법론 => 낼 수 있는 최소한의 기능으로 product => 사용가능한 정도로 => 점진적으로
+
+
+
+고객들은 뭘 원하는지 몰라 => 그래서 수요조사느낌
+
+= build fast fail fast = 이걸 하기위해 필요한 것을 배울것
+
+
+
+
+
+bitbucket
+
+gitlab
+
+
+
+git Linus Torvalds
+
+
+
+
+
+------------------------
+
+## BitBucket
+
+*SSAFY -> 컴퓨터*
+
+create repository
+
+copy https://yomandawg@bitbucket.org/yomandawg/bitbucket_test.git
+
+
+
+git bash -> mkdir git_practice
+
+git clone acts/ #이거안돼
+
+git clone https://yomandawg@bitbucket.org/yomandawg/bitbucket_test.git
+
+bitbucket_test/
+
+cd bitbucket_test/
+
+code . #code열기
+
+git log
+
+git add README.md
+
+git status
+
+git commit -m "modify README.md"
+
+git push origin master
+
+
+
+git clone
+
+
+
+git remote
+
+git remote -v
+
+git remote help
+
+git remote --help
+
+```
+git remote [-v | --verbose]
+git remote add [-t <branch>] [-m <master>] [-f] [--[no-]tags] [--mirror=<fetch|push>] <name> <url>
+git remote rename <old> <new>
+git remote remove <name>
+```
+
+
+
+----------------------
+
+## github에서 해보기
+
+create repository /git_practice
+
+https://github.com/yomandawg/git_practice.git
+
+
+
+**origin** : 관례로 첫 upload는 origin - 원격저장소의 별명 / 두번째부턴 아무거나(여기선 second)
+
+- git remote origin ...
+
+git remote add second https://github.com/yomandawg/git_practice.git
+
+
+
+이 후에
+
+git remote -v
+
+```
+$ git remote -v
+origin  https://yomandawg@bitbucket.org/yomandawg/bitbucket_test.git (fetch)
+origin  https://yomandawg@bitbucket.org/yomandawg/bitbucket_test.git (push)
+second  https://github.com/yomandawg/git_practice.git (fetch)
+second  https://github.com/yomandawg/git_practice.git (push)
+```
+
+
+
+git push second master (github에 푸시)
+
+
+
+---------------------------
+
+### Another Scenario
+
+*집 &rarr; 컴퓨터*
+
+cd ..
+
+mkdir home_computer
+
+cd home_computer
+
+
+
+* Bitbucket에서 먼저 코드를 받아와야겠지!
+  1. git clone https://yomandawg@bitbucket.org/yomandawg/bitbucket_test.git
+  2. cd bitbucket_test/
+  3. git log 하면 그동안 로그 뜸
+
+```
+1. git clone
+2. git push
+```
+
+1. initial commit
+2. modify content
+3. add content
+
+
+
+1. git add . (전체)
+2. git commit -m "Add content"
+3. git push origin master
+
+
+
+1. (다시 SSAFY로 가져와) **git pull origin master**
+2. git log
+
+
+
+
+
+----------------------------------------------
+
+## 협업
+
+rm -rf collabo (-rf 폴더지울때 recursive하게 지우는)
+
+----------------
+
+### 팀장
+
+mkdir collabo
+
+cd collabo/
+
+.code
+
+(README.md 수정)
+
+git init
+
+ls -a (git 추가된거 보임)
+
+git add README.md
+
+git commit - m "first commit" (아무말이나 상관없음)
+
+(create github repository: collabo)
+
+git remote add origin https://github.com/AutumnSky92/collabo.git  
+
+git push -u origin master
+
+------------------
+
+### 나
+
+clone https://github.com/AutumnSky92/collabo.git
+
+(폴더경로, 파일 생김)
+
+(수정 후)
+
+git add README.md
+
+git commit -m "fixed" (아무거나)
+
+git remote / git remote -v
+
+git push origin master
+
+---------------------------
+
+### 대장
+
+git pull origin master (싱크)
+
+(수정 후)
+
+git commit -m "Gaeyo"
+
+git push origin master
+
+----------------
+
+### 나
+
+(잘못 수정 후)
+
+git pull
+
+ * abort 뜸. (새로 저장하고 pull했으니까)
+
+git add .
+
+git commit -m "conflict cause"
+
+git pull
+
+* 대장과 내께 합쳐져서 conflict생김
+
+* pull(fetch+merge) => conflict
+
+(수정 후)
+
+git status
+
+* merge problem 떳다고 뜸
+
+git commit -m "merge conflict" (merge conflict 수정했다고 말하는 거 관례)
+
+git push origin master
+
+------------------------------
+
+### 대장
+
+git pull origin master (conflict와 수정한 것까지 match완료)
+
+
+
+------------
+
+## 그럼 협업 언제해?
+
+* 같은 시간에 push pull하다간 충돌
+
+## branch
+
+1. github flow
+
+2. git flow
+
+```
+세계 1 ------------>
+세계 2 ------------>
+master ------------> (처음 세계 만들면 master)
+```
+
+git branch --help
+
+`git branch`
+
+​	=> 지금 현재 진행되고 있는 세계들 (처음 만들면 master)
+
+
+
+`git branch new_world (new_world 세계 추가)`
+
+​	=> *master (astrisk *우리가 있는 세계)
+
+​		new_world
+
+`git checkout new_world (new_world 세계로 가즈아)`
+
+git status 해보면 바뀐게 없지만
+
+git add . 
+
+git commit -m "wow this is new world"
+
+git log 해보면 new_world에서 이루어지고 있는 것 확인 가능
+
+`git merge [합치고자 하는 이름]`
+
+git log 보면 master, new world 동시에 존재하는 것을 확인 가능
+
+> 좋은 습관 새로운 작업할 땐 새로운 세계에서! (원본 무결하게 만들기 위해 branch사용)
+
+
+
+* Udacity에서 Git 강의 참고!
+  * introduction to machine learning udacity @ youtube
+  * How to use git and github
+  * version contron with git
+  * linux command line basics
+
+
+
+----------------
+
+git init
+
+git add .
+
+git commit -m "Add browser module
+
+
+
+**iterable**
+
+``` python
+import random
+
+nums = [1,2,3,4,5,6]
+
+print(sorted(random.sample(range(1, 46), 6)))
+# random.sample(list랑 유사하게 생긴놈, 숫자)
+# iterable(list랑 유사하게 생긴놈)들 중, 
+# // iteration: 반복 but different from while
+# // nums = [1,2,3,4,5,6]
+# // for n in nums:
+# // nums 리스트 속에서 처음부터 끝까지만 돈다 (반복이 아니라 "순회")
+# // 한번만 돈다. different from while
+# // 특정한 자료들을 한번만 본다!
+# // iterable(list, tuple, dictionary)들 중,
+# // 숫자 만큼의 요소를 sample(비복원 무작위 추출) 한다.
+# 숫자 만큼의 요소를 sample(비복원 무작위 추출)
+```
+
+
+
+----------------
+
+--------------
+
+--------------
+
+-----------
+
+----
+
+---
+
+---
+
+---
+
+---
+
+
+
+# Command Line Interface (CLI)
+
+### Vagrant
+
+- 경량형 서버
+
+
+
+### Oracle Virtual Box
+
+* C9에서 할 수 없는 것을 local에서 작성해서 올리려고... 나중에 하자
+
+-----------------
+
+## BASH Shell Commands
+
+```python
+cd /
+# system directory
+cd ~
+# home directory
+pwd
+# print working directory
+sudo
+# 권한을 달라
+
+# 우린 c9에선 workspace에서 하려고 함
+
+echo 'print
+>'
+print
+# echo: 출력 // '로 print 출력
+
+NAME="Youngjun Kim"
+echo $NAME
+Youngjun Kim
+# 변수 설정
+
+echo 'hello' > a.txt
+# 출력하는 것 a.txt 에 기록
+echo 'world' > a.txt
+# 붙여쓰기가 아니라 덮어쓰기됨.
+echo 'hello' >> a.txt
+# 붙여쓰기됨
+# > : write // >> : append
+
+ls -a
+# 숨김파일까지 볼 수 있음
+ls -al
+# 파일설정까지 볼 수 있음
+
+c9 .gitconfig
+# 숨김파일 .gitconfig 를 열어볼 수 있다. (c9 자체제공) =~ vi같은것
+
+ctrl+c # quit
+```
+
+```shell
+.bashrc # hell script언어로 작성된 시스템 설정 파일
+#.bashrc에
+alias gs="git status"
+alias gcm="git commit -m"
+alias gp="git push"
+alias gl="git log"
+alias p3="python3"
+# alias: => 간편하게 줄임말쓰기
+
+# .bashrc 바꾼 후
+source ~/.bashrc # .bashrc 변경된 것 알림
+
+man cat
+man echo
+# man : command manual
+cat a.txt # 컨텐츠 출력
+
+mkdir empty # 폴더(경로) 만들기
+rm a.txt # 지우기
+rm -r empty # 폴더 지울땐 -r recursive하게 지우겠다. 디렉토리기 때문에 안에 생기는거 / 새로생기는거 계속지움
+touch a.txt # 만들기
+
+tree # 폴더 구조 보여준다.
+
+mv [이동할 대상] [이동할 곳] # 파일 이동
+mv templates/app.py . # 한칸 바깥으로 이동함
+mv templates/index.html .
+mv templates/show.html .
+mv *.html templates/ # * : 모든 .html 파일 이동 
+mv templates/* .
+mv * templates/ # 모든파일
+
+mv [변경하려는 파일] [변경하고자 하는 파일] # 이름 변경
+mv app.py main.py # 이름 변경
+
+cp [카피할 대상] [카피할 곳] # copy
+cp -r templates/ views # 폴더 copy
+
+rm -rf views/ # -f 아무것도 하지말고 강제로 지워
+```
+
+-----------------
+
+
+
+## API 따오기
+
+```shell
+sudo pip3 install flask
+```
+
+
+
+1. url 통해 요청 받고
+
+2. 축약해서 사용자에게 보여준다.
+
+
+
+컴퓨터에서 **/**는 **route** 기본적인 형태
+
+
+
+인터넷 일반적으로 **주소/80** : http 기본 포트, 문의 번호(**port**)
+
+**443**: https의 기본포트
+
+이메일포트 요청포트 등등 여러 포트 있음
+
+
+
+`flask run --port=8080 --host=0.0.0.0`
+
+flask run: C9에서 서버 구동해줌
+
+--port=8080: 80포트 요청
+
+--host=0.0.0.0: 내 호스트번호?
+
+
+
+-------------------
+
+--------
+
+------
+
+# Flask
+
+`render_template`: html
+
+`request.args.get('keyword')`
+
+
+
+C9 <--> User
+
+1. 정보를 가져오는 방법(GET)
+   * 
+
+
+
+2. 정보를 게시하는 방법(POST)
+
+
+
+response [200] : 정보 들어왔다
+
+
+
+`https://developers.naver.com/docs/nmt/reference/` : papago api guideline
+
+
+
+---
+
+---
+
+---
+
+# HTML
+
+뭐 쓰고 tab누르면 다뜸!!
+
+* ! tab
+
