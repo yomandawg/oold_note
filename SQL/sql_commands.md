@@ -242,3 +242,54 @@ WHERE name = '강동주'
 
 * CSV는 text로 출력되는데, ORDER로 검색할 때 숫자가 9면 그냥 출력함
   * text를 integer로 바꿔야해
+
+
+
+### 여기까지 한 것
+
+1. sqlite3에 접속
+2. table 관련 SQL 작성(CREATE TABLE)
+3. CRUD(Create, Read, Update, Delete) SQL
+
+
+
+----
+
+---
+
+
+
+## Python and SQL
+
+> `import sqlite3`
+
+
+
+* database cursor 
+  * 일련의 데이터에 순차적으로 액세스할 때 검색 및 '현재 위치'를 포함하는 데이터 요소
+
+
+
+```python
+import sqlite3
+
+# 1. sqlite3에 접속 // > sqlite3 test.sqlite3
+conn = sqlite3.connect('test.sqlite3') # 연결을 마치고 난 객체를 conn에 저장
+
+# a. cursor 생성 => cursor()
+# b. sql문 작성 => execute()
+# c. cursor 실행 => fetchone() | fetchall()
+cur = conn.cursor()
+cur.execute('SELECT * FROM users users LIMIT 10') # string 단위로 넣어주기 때문에 delimter ';' 필요 없음
+data = cur.fetchall()
+
+# 2. SQL 작성 후 실행
+# - table 관련 SQL 작성(CREATE TABLE)
+# - CRUD(Create, Read, Update, Delete) SQL
+```
+
+
+
+* `database.commit()`
+  * 커밋 없이는 세션에 임시 정보 저장된 상태로 실제 db에 반영되지 않음
+  * *Read*는 db를 건드리지 않기 때문에 commit 안해도 된다.
