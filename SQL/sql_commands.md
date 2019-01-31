@@ -43,7 +43,9 @@ with open('csv/quest.txt', 'r') as f:
 
 
 
+---
 
+---
 
 # SQL
 
@@ -102,13 +104,17 @@ with open('csv/quest.txt', 'r') as f:
 
 > *create, read, update, delete*
 
+### ACID
+
+> Atomicity, Consistency, Isolation, Durability
+
+* DB 작성 원칙
+
 
 
 ---
 
 ---
-
-
 
 # SQLite
 
@@ -279,17 +285,181 @@ conn = sqlite3.connect('test.sqlite3') # 연결을 마치고 난 객체를 conn�
 # a. cursor 생성 => cursor()
 # b. sql문 작성 => execute()
 # c. cursor 실행 => fetchone() | fetchall()
-cur = conn.cursor()
-cur.execute('SELECT * FROM users users LIMIT 10') # string 단위로 넣어주기 때문에 delimter ';' 필요 없음
-data = cur.fetchall()
+# cur = conn.cursor() # 한번만 하면 됨
+# cur.execute('SELECT * FROM users users LIMIT 10') # string 단위로 넣어주기 때문에 delimter ';' 필요 없음
+# data = cur.fetchall()
+# for row in data:
+#     print('{}{}'.format(row[2], row[1]))
+
+# 실습 1. CREATE
+# --> 여러분의 정보를 한 행(데이터 레코드)로 만들어 보세요.
+# Create & Update & Delete의 경우 -> conn.commit()
+cur = conn.cursor() # 1) cursor 만든 후
+sql = "INSERT INTO users (id, first_name, last_name, age, country, phone, balance) VALUES "
+cur.execute(sql + "('1001', '영준', '김', '28', '광주', '01012345678', '10000')") # 2) 넣어주고
+data = conn.commit() # 3) 데이터 커밋 후
+cur.execute("SELECT * FROM users WHERE first_name == '영준'") # 4) 명령하고
+data = cur.fetchone() # 5) output 가져온다
+print(data)
+
 
 # 2. SQL 작성 후 실행
 # - table 관련 SQL 작성(CREATE TABLE)
 # - CRUD(Create, Read, Update, Delete) SQL
 ```
 
-
-
 * `database.commit()`
   * 커밋 없이는 세션에 임시 정보 저장된 상태로 실제 db에 반영되지 않음
   * *Read*는 db를 건드리지 않기 때문에 commit 안해도 된다.
+
+
+
+**C9**
+
+`/usr/local/lib/python2.7/dist-packages:/usr/local/lib/python3.4/dist-packages:/usr/local/lib/python3.5/dist-packages`
+
+&rarr; `/usr/local/lib/python3.4/dist-packages:/usr/local/lib/python3.5/dist-packages`
+
+
+
+
+
+```python
+"""
+사용자로부터 입력을 받아 게시물을 작성해주는 프로그램
+
+> 제목을 입력해주세요 :
+> 내용을 입력해주세요 :
+> 모든 게시물 :
+"""
+
+import sqlite3
+
+c = sqlite3.connect('test.sqlite3')
+db = c.cursor()
+
+title = input('제목을 입력해주세요 : ')
+content = input('내용을 입력해주세요 : ')
+sql = "INSERT INTO articles (title, content) VALUES ('{}', '{}')".format(title, content)
+db.execute(sql)
+c.commit()
+
+
+print('모든 게시물 : ')
+sql2 = "SELECT * FROM articles"
+db.execute(sql2)
+data = db.fetchall()
+for row in data:
+    print(row)
+    
+c.close()
+```
+
+
+
+---
+
+---
+
+# Flask
+
+* ORM
+  * Object-relational mapping
+  * convert data between incompatible type systems using OOP
+
+* RDS
+  * Amazon Relational Database Service
+
+
+
+`sudo pip3 install flask`
+
+
+
+`sqlite3 board.sqlite3` // database 이름: board
+
+`.tables`
+
+`CREATE TABLE articles (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, content TEXT);` // table 이름: articles
+
+
+
+* RESTful API
+  * 최소한의 정보 to url
+
+
+
+```python
+@app.route('/')
+def index():
+    # 1. 사용자로부터 입력을 받아 '/create'로 넘겨줌
+    # 2. 모든 게시물을 보여줌
+    c = sqlite3.connect('board.sqlite3')
+    db = c.cursor()
+    sql = "SELECT * FROM articles"
+    db.execute(sql)
+    data = db.fetchall()
+    c.close()
+    
+    return render_template('index.html', data=data)
+
+@app.route('/create', methods=["POST"])
+def create():
+    # index에서 넘어온 data를 DB에 저장한다.
+    title = request.form.get('title')
+    content = request.form.get('content')
+    
+    c = sqlite3.connect('board.sqlite3')
+    db = c.cursor()
+    sql = "INSERT INTO articles (title, content) VALUES ('{}', '{}')".format(title, content)
+    db.execute(sql)
+    c.commit()
+    c.close()
+    
+    return redirect('/')
+    
+@app.route('/delete/<int:article_id>')
+def delete(article_id):
+    # 특정 게시글을 삭제함
+    # DELETE FROM articles WHERE id = <article_id>
+    c = sqlite3.connect('board.sqlite3')
+    db = c.cursor()
+    sql = "DELETE FROM articles WHERE id={}".format(article_id)
+    db.execute(sql)
+    c.commit()
+    c.close()
+    
+    return redirect('/')
+    # return str(article_id)
+
+@app.route('/edit/<int:article_id>')
+def edit(article_id):
+    # 편집하기
+    # form 만들고, 원래 있던 값을 불러와 보여줌
+    # DB에서 값을 찾아와
+    # template에 넣어줌
+    c = sqlite3.connect('board.sqlite3')
+    db = c.cursor()
+    sql = "SELECT * FROM articles WHERE id={}".format(article_id)
+    db.execute(sql)
+    data = db.fetchall()
+    c.close()
+    
+    return render_template('edit.html', data=data)
+
+@app.route('/update/<int:article_id>', methods=["POST"])
+def update(article_id):
+    # 업데이트
+    title = request.form.get('title')
+    content = request.form.get('content')
+    
+    c = sqlite3.connect('board.sqlite3')
+    db = c.cursor()
+    sql = "UPDATE articles SET title='{}', content='{}' WHERE id={}".format(title, content, article_id)
+    db.execute(sql)
+    c.commit()
+    c.close()
+    
+    return redirect('/')
+```
+
