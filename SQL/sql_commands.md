@@ -216,9 +216,11 @@ WHERE name = '강동주'
 
 * update: `UPDATE classmates SET address = '부산' WHERE id = 3;`
 
+* alter column: `ALTER TABLE friends ADD married INTEGER;`
 
 
-* csv file mode: `.mode csv
+
+* csv file mode: `.mode csv`
 
 * import other files`.import users.csv users`
 
@@ -374,7 +376,7 @@ c.close()
 
 `sudo pip3 install flask`
 
-
+`flask run --host=0.0.0.0 --port=8080`
 
 `sqlite3 board.sqlite3` // database 이름: board
 
