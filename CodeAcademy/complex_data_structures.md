@@ -17,13 +17,11 @@
 - *Key* - the identifier given to a value for later retrieval
 - *Hash function* - a function that takes some input and returns a number
 - *Compression function* - a function that transforms its inputs into some smaller range of possible outputs
-
 - Recipe for saving to a hash table:
   1. Take the key and plug it into the hash function, getting the hash code
   2. *Modulo* that hash code by the length of the underlying array, getting an array index
   3. Check if the array at that index is empty, if so, save the value (and the key) there
   4. If the array is full at that index, continue to the next possible position depending on your collision strategy
-
 - Recipe for retrieving from a hash table:
   1. Take the key and plug it into the hash function,getting the hash code
   2. Modulo that hash code by the length of the underlying array, getting an array index
@@ -41,6 +39,8 @@
 - A value is stored at an array index determined by plugging the key into a hash function
 - In Python, we don't have an array data structures that uses a contiguous block of memory
   - We are going to simulate an array by creating a list and keeping track of the size of the list with an additional integer variable
+
+#### Open Addressing
 
 ```python
 class HashMap:
@@ -126,7 +126,44 @@ print(hash_map.retrieve('sandstone'))
 print(hash_map.retrieve('gneiss'))
 ```
 
+#### Separate Chaining
+
+```python
+from linked_list import Node, LinkedList
+
+class HashMap:
+    def __init__(self, size):
+        self.array_size = size
+        self.array = [LinkedList() for _ in range(self.array_size)]
+
+    def hash(self, key):
+        return sum(key.encode())
+
+    def compress(self, hash_code):
+        return hash_code % self.array_size
+
+    def assign(self, key, value):
+        array_index = self.compress(self.hash(key))
+        payload = Node([key, value])
+        list_at_array = self.array[array_index]
+        for item in list_at_array:
+            if key == item[0]:
+                item[1] = value
+                return
+        list_at_array.insert(payload)
+
+    def retrieve(self, key):
+        array_index = self.compress(self.hash(key))
+        list_at_index = self.array[array_index]
+        for item in list_at_index:
+            if key == item[0]:
+                return item[1]
+        return None
+```
+
 ------
 
-### Blossom
+
+
+## Trees
 
