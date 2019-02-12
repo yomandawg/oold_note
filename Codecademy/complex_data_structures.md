@@ -163,6 +163,8 @@ class HashMap:
 
 ------
 
+---
+
 ## Trees
 
 * useful for modeling data that has a hierarchical relationship which moves in the direction from parent to child
@@ -203,6 +205,8 @@ class TreeNode:
       print(current_node.value)
       nodes_to_visit += current_node.children
 ```
+
+---
 
 ---
 
@@ -322,9 +326,88 @@ class MinHeap:
 
 ---
 
+---
+
 ## Graphs
 
+* An essential data structure in computer science for modeling networks
+* `vertex`: a node in a graph
+* `edge`: a connection between two vertices
+* `adjacent`: when an edge exists between vertices
+* `path`: a sequence of one or more edges between vertices
+* `disconnected`: graph where at least two vertices have no path connecting them
+* `weighted`: graph where edges have an associated cost
+* `directed`: graph where travel between vertices can be restricted to a single direction
+* `cycle`: a path which begins and ends at the same vertex
+* `adjacency matrix`: graph representation where vertices are both the rows and the columns.
+  * each cell represents a possible edge
+* `adjacency list`: graph representation where each vertex has a list of all the vertices it shares an edge with
 
+---
 
+### Python Implementaion
 
+* Class `Vertex`
+  * stores some data
+  * stores the edge to connected vertices and their weight
+  * can add a new edge to its collection
+* Class `Graph`
+  * stores all the vertices
+  * knows if it is directed or undirected
+  * can add a new vertex to its collection
+  * can add a new edge between stored vertices
+  * can tell whether a path exists between stored vertices
+
+* Vertex
+  * uses a dictionary as an adjacency list to store connected vertices
+  * connected vertex names are keys and the edge weights are values
+  * has methods to add edges and return a list of connected vertices
+
+```python
+class Vertex:
+  def __init__(self, value):
+    self.value = value
+    self.edges = {}
+
+  def add_edge(self, vertex, weight = 0):
+    self.edges[vertex] = weight
+
+  def get_edges(self):
+    return list(self.edges.keys())
+```
+
+* Graph
+  * can be initialized as a directed graph, where edges are set in one direction
+  * stores every vertex inside a dictionary
+    * vertex data is the key and the vertex instance is the value
+  * has methods to add vertices, edges between vertices, and determine if a path exists between two vertices
+
+```python
+class Graph:
+  def __init__(self, directed = False):
+    self.graph_dict = {}
+    self.directed = directed
+
+  def add_vertex(self, vertex):
+    self.graph_dict[vertex.value] = vertex
+
+  def add_edge(self, from_vertex, to_vertex, weight = 0):
+    self.graph_dict[from_vertex.value].add_edge(to_vertex.value, weight)
+    if not self.directed:
+      self.graph_dict[to_vertex.value].add_edge(from_vertex.value, weight)
+
+  def find_path(self, start_vertex, end_vertex):
+    start = [start_vertex]
+    seen = {}
+    while len(start) > 0:
+      current_vertex = start.pop(0)
+      seen[current_vertex] = True
+      print("Visiting " + current_vertex)
+      if current_vertex == end_vertex:
+        return True
+      else:
+        vertices_to_visit = set(self.graph_dict[current_vertex].edges.keys())
+        start += [vertex for vertex in vertices_to_visit if vertex not in seen]
+    return False
+```
 
