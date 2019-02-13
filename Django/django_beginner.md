@@ -16,6 +16,8 @@
    * `pip install django`
 5. Django 프로젝트 test 생성
    * `django-admin startproject text .`
+6. Django 서버 실행
+   * `python manage.py runserver $IP:$PORT`
 
 ## 실행 코드
 
@@ -77,7 +79,7 @@ python manage.py runserver $IP:$PORT
 
 ```python
 # /settings.py
-ALLOWED_HOSTS = ['django-practice-sitback.c9users.io'] # 내 HOST 주소
+ALLOWED_HOSTS = ['django-practice-sitback.c9users.io'] # 내 HOST 주소 도메인 허용
 
 LANGUAGE_CODE = 'ko-kr' # 언어 변경
 
@@ -138,7 +140,8 @@ templates/
 from pages import views # views라는 file에서 가져옴
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.index) # '' == '/' route
+    path('', views.index), # '' == '/' route
+    path('ispal/<str:words>', views.ispal),
 ]
 ```
 
