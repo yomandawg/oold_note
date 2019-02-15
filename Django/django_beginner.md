@@ -301,6 +301,29 @@ echo $NAVER_ID # 하면 가상머신에서 환경변수 설정된 것 확인 가
 {% endblock %}
 ```
 
+### Static 경로
+
+```
+DB/articles/static/
+	css/
+		style.css
+	image/
+		ryan.jpg
+```
+
+```html
+{% load static %}
+<head>
+	...
+	<link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+```
+
+```python
+# settings.py
+STATIC_URL = '/static/' # default 값
+```
+
 ---
 
 ## Models
