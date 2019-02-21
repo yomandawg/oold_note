@@ -370,7 +370,7 @@ def home(request):
     return render(request, 'home.html') # Django는 모든 templates 폴더를 동등한 레벨로 찾음
 ```
 
-* Djnago는 첫 번째 마주하는 `<any_app>/templates/home.html`을 불러옴
+* Django는 첫 번째 마주하는 `<any_app>/templates/home.html`을 불러옴
 
 ```python
 # board/settings.py
@@ -470,7 +470,7 @@ class Article(models.Model):
 python manage.py makemigrations # models 바뀌면 물어봐줌
 > Did you rename article.content to article.context (a TextField)? [y/N]
 > Migrations for 'articles':
->   articles/migrations/0002_auto_20190220_1431.py
+>   articles/migrations/0002_auto_20190220_1431.py # next migration number
 >     - Rename field content on article to context
 python manage.py migrate # 바뀐 models를 migrate(commit)하면 기존 db 최적화시켜줌
 > Operations to perform:
