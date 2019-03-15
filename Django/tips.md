@@ -71,7 +71,7 @@ git status
 
 ```
 python manage.py startapp board (django manage.py 랑 same)
-pip install django.extensions ipython
+pip install django_extensions ipython
 ```
 
 ```python
@@ -166,4 +166,76 @@ ctrl + g
 shift + enter
 
 shift + ctrl + arrow
+
+
+
+`pip install pillow` for using `ImageField`
+
+`pip install django-imagekit` for image processing
+
+
+
+
+
+`git rm -r --cached first_local/media/` git 특정 경로 관리 해제
+
+
+
+```bash
+python manage.py shell_plus
+p = Posting.objects.get(id=9)
+p.image_thumbnail.url # cache 확인하면 생성
+```
+
+
+
+* Font awesome
+
+`<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">`
+
+
+
+* DB에 변화를 주변 POST else GET!
+
+
+
+```python
+# 1
+posting = Posting()
+posting.content = request.POST.get('content')
+...
+posting.save()
+
+# 2
+posting = Posting(
+	content=request.POST.get('content'),
+    ...
+)
+posting.save()
+
+# 3
+posting = Posting.objects.create(
+    content=request.POST.get('content'),
+    icon=request.POST.get('icon'), 
+    image=request.FILES.get('image')
+)
+```
+
+
+
+`python manage.py migrate [APP_NAME]` 특정 app만 migrate
+
+`python manage.py migrate [APP_NAME] zero` 모든 migration에서 적용했던 것들 지우기 (테이블 다 날라감)
+
+
+
+
+
+`python manage.py createsuperuser`
+
+
+
+windows에서 sqlite3
+
+데이터 우클릭 import db from path ...
 
