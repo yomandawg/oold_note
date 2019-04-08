@@ -1,6 +1,8 @@
 # Django Application
 
 > **Server on**: `python manage.py runserver $IP:$PORT`
+>
+> `python manage.py createsuperuser`
 
 ### App settings
 

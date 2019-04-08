@@ -594,7 +594,7 @@ def create(request):
 
 - **N** 쪽에서 Foreign Key(**1** 의 PK)를 사용하여 **1** 에 접근가능
 
-```
+```python
 # in models.py
 
 class Comment(models.Model):
@@ -993,6 +993,78 @@ from django.contrib.auth import authenticate, login, logout
 > HTTP = Stateless
 >
 > - 상태가 없음
+
+
+
+#### LOGIN
+
+```python
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
+
+
+# /users/login/ 
+def login_user(request):
+    if request.method == "POST":
+        # login == user 인증
+        # > 1. request에 담긴 정보 (username, password)
+        # > 2. DB에 user가 있고, 정보가 일치 하는지 확인
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        # 1. 유저를 검증한다.
+        # - DB에 해당하는 username을 가진 유저가 있고,
+        # - 해당 유저의 password가 입력된 값과 같은지
+        user = authenticate(request, username=username, password=password)
+        # pseudo code
+        # username으로 찾아서 hash 변환하고 password 비교하고 맞으면 유저 객체를 반환
+        # 아닌경우 None 을 반환
+        
+        # 2. 유저를 로그인시킨다.
+        # 서버에 해당 유저가 유효한 유저임을 세션에 저장
+        if user is not None:
+            login(request, user)
+            # 유저에게 성공적으로 로그인이 되었다고 알려줌
+            messages.success(request, "로그인이 되었습니다.")
+            return redirect('todos:home')
+        else:
+            # 유저에게 로그인이 실패했다고 알려줌
+            messages.success(request, "로그인에 실패했습니다.")
+            return redirect('users:login')
+    else:
+        return render(request, 'users/login.html')
+   
+        
+def logout_user(request):
+    # 유저를 logout 시킨다.
+    # > 세션에서 유저를 지운다.
+    logout(request)
+    messages.success(request, "로그아웃 되었습니다.")
+    return redirect('users:login')
+    
+    
+def profile(request):
+    # 유저 정보
+    return render(request, 'users/profile.html')
+    
+def register(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            login(request, form.instance)
+            messages.success(request, "로그인이 되었습니다.")
+            return redirect('todos:home')
+    else:
+        form = UserCreationForm()
+        return render(request, 'users/register.html', {
+            'form': form
+        })
+```
+
+
 
 #### 메세지 출력
 
