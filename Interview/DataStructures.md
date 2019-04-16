@@ -124,3 +124,55 @@ ASIC - 특화된 명령어만 계속 수행
 ---
 
 IoT
+
+
+
+
+
+---
+
+AWS
+
+* 1년 무료 - T2micro 서버
+
+
+
+---
+
+DAU
+
+MAU
+
+트래픽 - google analytics (ga)
+
+* 간편하게 앱에  javascript 붙이기만 하면 구글이 request header을 분석해준다
+
+유저수
+
+
+
+---
+
+Hashing
+
+- username+password+salt string concatation (통합 정보)
+
+- 남겨진 cookie를 확인해서 유저가 로긴상태인지 아닌지 `session 공간`에서 확인
+- session엔 유저의 통합정보가 관리됨
+- 유저가 request할 때 cookie와, 정보를 보내면 -> 그 값을 session에서 찾는다
+- 만약 비번 바꾸면 username+password+salt 에서 password가 바껴서 hash값이 바뀐다
+  - hash값이 reload돼야해!
+  - 이 값을 억지로 바꿔줘야해 `update_session_auth_hash`
+    - 세션에 있는 auth hash를 바꿔줘
+
+---
+
+HTTP: 통신 규약
+
+- cookie가 필요한 이유: 서로 누군지 밝히기 위해
+- (과거에 설계됐을 때, 서버 작으니까)서버쪽에서 최소한의 정보를 쥐고있고, client쪽에서 많은 정보(쿠키)를 가지고 있어
+  - request 보낼 때, cookie를 갖고 있는 사람은 다 그전 유저라고 생각함
+- html header이 작은 이유
+- 시크릿모드 -> 서버에서 아무 cookie도 받지 않음
+- 쿠키를 복사하면 그사람인척 할 수 있다
+- 취약한 사이트는 쿠키만 조작하면 로그인한척 할 수 있음

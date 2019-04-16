@@ -900,3 +900,232 @@ def people(request, username):
 {% endblock %}
 ```
 
+
+
+
+
+## Comment
+
+```html
+#posts/list.html
+<!-- 로그인한 상태면 -->
+{% if user.is_authenticated %}
+<!--댓글 기능 -->
+<div class="card-body">
+    <form method="POST" action="{% url 'posts:comment' post.id %}">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <button type="submit" class="btn btn-info">댓글쓰기</button>
+    </form>
+</div>
+<div class="card-body">
+    {% for comment in post.comment_set.all %}
+    <div class="card-text">
+        <strong>{{ comment.user.username }}</strong> {{ comment.content }}
+    </div>
+    <!-- else와 유사한 비어있을 때 조건문 empty -->
+    {% empty %}
+    <div>댓글이 없습니다.</div>
+    {% endfor %}
+</div>
+{% endif %}
+```
+
+```python
+#posts/models.py
+class Comment(models.Model):
+    content = models.CharField(max_length=100)
+    # 두 개의 Foreign key를 갖게됨
+    post = models.ForeignKey(Post, on_delete=models.CASCADE) # 어떤 모델을 참조하고 있는지
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return self.content
+```
+
+```python
+#posts/forms.py
+from .models import Comment
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['content']
+```
+
+`python manage.py makemigrations` `python manage.py migrate`
+
+```python
+#posts/urls.py
+...
+path('<int:post_id>/comment/create/', views.create_comment, name="comment"),
+```
+
+```python
+#posts/views.py
+from .forms import CommentForm
+from django.views.decoreators.http import require_POST
+
+@login_required
+@require_POST # POST 말고는 차단
+def create_comment(request, post_id):
+    # Comment를 만드는 로직
+    post = get_object_or_404(Post, pk=post_id)
+    form = CommentForm(request.POST)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.user = request.user
+        # comment.post_id = post_id # 객체로 하거나 ORM에 맡기거나 둘중에 하나만 하는게 관례
+        comment.post = post
+        comment.save()
+    return redirect('posts:list')
+```
+
+
+
+## User 강화
+
+- 유저 정보 변경
+- 프로필 추가
+
+```python
+#accounts/views.py
+# 회원 정보 변경(편집 & 반영)
+def update(request):
+    if request.method == "POST":
+        user_change_form = CustomUserChangeForm(request.POST, instance=request.user)
+        if user_change_form.is_valid():
+            user = user_change_form.save() # save된 객체를 return함
+            return redirect('people', user.username)
+    else: # GET: 지금 로그인한 유저의 현재 정보를 띄워주는 form
+        user_change_form = CustomUserChangeForm(instance=request.user)
+        # 현재 로그인된 정보 but 이것만 출력하면 너무 많아 -> 원하는 정보만 보게 수정해야함
+        # password_change_form = PasswordChangeForm(request.user)
+        # context = {'user_change_form': user_change_form, 'password_change_form': password_change_form} # 서로 다른 페이지로 만들거다
+        context = {'user_change_form': user_change_form}
+        return render(request, 'accounts/update.html', context)
+```
+
+```python
+#accounts/forms.py
+class CustomUserChangeForm(UserChangeForm): # 그냥 UserChangeForm에서 모듈화로 customize
+    class Meta:
+        model = get_user_model()
+        fields = ['username', 'email', 'first_name', 'last_name'] # 어느 필드만 보여주고 싶다 선택 가능
+```
+
+```python
+#accounts/urls.py
+path('update/', views.update, name="update"),
+path('delete/', views.delete, name="delete"),
+```
+
+```html
+#accounts/people.html
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="container">
+  <h1>{{ people.username }}</h1>
+  <p>{{ people.first_name }} {{ people.last_name }}</p>
+  {% if user == people %}
+  <a class="btn btn-info" href="{% url 'accounts:update' %}">회원 정보 변경</a>
+  <a class="btn btn-danger" href="{% url 'accounts:delete' %}">회원 탈퇴</a>
+  {% endif %}
+  <div class="row">
+    {% for post in people.post_set.all %}
+    <div class="col-4">
+      <img src="{{ post.image.url }}" class="img-fluid">
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+```
+
+
+
+## 탈퇴
+
+```python
+#accounts/views.py
+# 회원 탈퇴
+def delete(request):
+    if request.method == "POST":
+        request.user.delete()
+    return render(request, 'accounts/delete.html')
+```
+
+```html
+#accounts/delete.html
+```
+
+
+
+## 비밀번호 변경
+
+```python
+#accounts/views.py
+# 비밀번호 변경
+def password(request):
+    if request.method == "POST":
+        password_change_form = PasswordChangeForm(request.user, request.POST)
+        if password_change_form.is_valid():
+            user = password_change_form.save() # 그냥 이렇게 하면 session 로그아웃됨 -> login상태 유지하려면?
+            update_session_auth_hash(request, user) # auth hash 자동 업데이트 - 로그인 유지
+            return redirect('people', user.username)
+    else:
+        password_change_form = PasswordChangeForm(request.user)
+        return render(request, 'accounts/password.html', {'password_change_form': password_change_form})
+```
+
+```html
+#accounts/password.html
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block body %}
+<h1 class="text-center">비밀번호 변경</h1>
+<form method="POST">
+  {% csrf_token %}
+  {% bootstrap_form password_change_form %}
+  <button class="btn btn-primary">수정</button>
+</form>
+{% endblock %}
+```
+
+* Hashing
+
+  - username+password+salt string concatation (통합 정보)
+
+  * 남겨진 cookie를 확인해서 유저가 로긴상태인지 아닌지 `session 공간`에서 확인
+  * session엔 유저의 통합정보가 관리됨
+  * 유저가 request할 때 cookie와, 정보를 보내면 -> 그 값을 session에서 찾는다
+  * 만약 비번 바꾸면 username+password+salt 에서 password가 바껴서 hash값이 바뀐다
+    * hash값이 reload돼야해!
+    * 이 값을 억지로 바꿔줘야해 `update_session_auth_hash`
+      * 세션에 있는 auth hash를 바꿔줘
+
+
+
+* HTTP: 통신 규약
+  * cookie가 필요한 이유: 서로 누군지 밝히기 위해
+  * (과거에 설계됐을 때, 서버 작으니까)서버쪽에서 최소한의 정보를 쥐고있고, client쪽에서 많은 정보(쿠키)를 가지고 있어
+    * request 보낼 때, cookie를 갖고 있는 사람은 다 그전 유저라고 생각함
+  * html header이 작은 이유
+  * 시크릿모드 -> 서버에서 아무 cookie도 받지 않음
+  * 쿠키를 복사하면 그사람인척 할 수 있다
+  * 취약한 사이트는 쿠키만 조작하면 로그인한척 할 수 있음
+
+
+
+
+
+## Follow
+
+* M:N 
+  * User가 User를 팔로우
+
+
+
+
+
