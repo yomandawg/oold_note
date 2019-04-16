@@ -105,8 +105,6 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-
-
 ```python
 #posts/admin.py
 
@@ -534,5 +532,371 @@ def delete(request, post_id):
         return redirect('posts:list')
     post.delete()
     return redirect('posts:list')
+```
+
+
+
+-----
+
+## M:M
+
+```python
+#posts/models.py
+
+class Post(models.Model):
+    content = models.CharField(max_length=150)
+    image = models.ImageField(blank=True)
+    # user = models.ForeignKey(User, on_delete=models.CASCADE) #User 폼 변경하려면 상속받아서 다르게 짜야함
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE) # user foreign_key를 불러오므로 user_id 키가 있을 것
+    like_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="like_posts", blank=True) # user와 M:M 관계
+    # M:M은 쌍방향이라 어느쪽에 테이블을 만들어도 상관 없음; users에 넣어도 됨(초기 설계단계에서 설정) # related_name에 양쪽 다 조회할 수 있게끔 이름 설정
+    # users like 가 문법적으로 맞지만 users model을 접근하기가 일단 어렵기 때문에 이렇게 함
+```
+
+모델 변경 &rarr; `migrate`
+
+
+
+`python manage.py sqlmigrate posts 0004` - django가 sql로 뭔짓 했는지 보여줌
+
+```bash
+BEGIN;
+--
+-- Add field like_users to post
+--
+CREATE TABLE "posts_post_like_users" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "post_id" integer NOT NULL REFERENCES "posts_post" ("id") DEFERRABLE INITIALLY DEFERRED, "user_id" integer NOT NULL REFERENCES "auth_user" ("id") DEFERRABLE INITIALLY DEFERRED);
+CREATE UNIQUE INDEX "posts_post_like_users_post_id_user_id_372014ef_uniq" ON "posts_post_like_users" ("post_id", "user_id");
+CREATE INDEX "posts_post_like_users_post_id_5876c897" ON "posts_post_like_users" ("post_id");
+CREATE INDEX "posts_post_like_users_user_id_8d849ce2" ON "posts_post_like_users" ("user_id");
+COMMIT;
+```
+
+
+
+`pip install django_extensions`
+
+```python
+#posts/settings.py
+
+INSTALLED_APPS = [
+    ...
+    'django_extensions',
+]
+```
+
+`python manage.py shell_plus`
+
+```shell
+>>> Post.objects.all()
+<QuerySet [<Post: adfgdfg>]>
+>>> post = Post.objects.first()
+>>> post
+<Post: adfgdfg>
+>>> User.objects.all()
+<QuerySet [<User: admin>]>
+>>> post.like_users
+<django.db.models.fields.related_descriptors.create_forward_many_to_many_manager.<locals>.ManyRelatedManager object at 0x7fc722f065c0>
+>>> user = User.objects.first()
+>>> user.like_posts.all()
+<QuerySet []> # user이 like한 Post가 없음
+>>> user.like_posts.add(post) # user가 post를 like
+>>> user.like_posts.all()
+<QuerySet [<Post: adfgdfg>]>
+```
+
+다른 유저 추가
+
+```shell
+>>> User.objects.all()
+<QuerySet [<User: admin>, <User: yoman@yoman.com>]>
+>>> ahley = User.objects.last()
+>>> ahley
+<User: yoman@yoman.com>
+>>> ahley.like_posts.all()
+<QuerySet []>
+>>> ahley.like_posts.add(Post.objects.first())
+>>> ahley.like_posts.all()
+<QuerySet [<Post: adfgdfg>]>
+
+>>> john = User.objects.first()
+>>> john
+<User: admin>
+>>> john.post_set.all() # john이 쓴 모든 post
+<QuerySet [<Post: adfgdfg>]>
+>>> john.post_set.first().like_users.all() # john이 쓴 첫번째 post를 like한 모든 사람
+# ORM을 통해서 왔다갔다 조회 가능
+<QuerySet [<User: admin>, <User: yoman@yoman.com>]> # queryset으로 유저 리스트가 나옴
+>>> exit()
+```
+
+
+
+```python
+#posts/views.py
+from django.contrib.auth.decorators import login_required
+# login_required
+# 1. 유저가 로그인 안했으면, 로그인창으로 보냄 - default = accounts
+# 2. "https://sitback-sitback.c9users.io/accounts/login/?next=/posts/1/like"
+# next:로그인 되는 순간 like 하게 만들겠다. url 끝난다음에 어디로 가는지 고려
+
+def create(request):
+    if request.method == "POST":
+        # 작성된 post를 DB에 적용
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False) # auth 기능으로 추가
+            post.user = request.user
+            post.save()
+            return redirect('posts:list')
+    else: # GET
+        # post를 작성하는 form을 보여줌
+        form = PostForm()
+        return render(request, 'posts/create.html', {'form': form})
+
+@login_required(redirect_field_name="posts:list") # session에 로그인이 안돼있으면 막음
+def like(request, post_id):
+    # 1. like를 추가할 포스트를 가져옴
+    post = get_object_or_404(Post, id=post_id)
+    # post = Post.objects.get(id=post_id)
+    
+    # 2. 만약 유저가 해당 post를 이미 like 했다면,
+    #       like를 제거하고,
+    #    아니면,
+    #       like를 추가한다.
+    if request.user in post.like_users.all(): # 유저가 post.like_users.all() -> queryset 리스트 안에 있으면,
+        post.like_users.remove(request.user) # like 해제
+    else:
+        post.like_users.add(request.user)
+        
+    return redirect('posts:list')
+```
+
+```python
+#posts/urls.py
+urlpatterns = [
+    ...
+    path('<int:post_id>/like', views.like, name="like"), # url엔 post_id만 넘겨주고, user관한 정보는 view에서 처리
+]
+```
+
+```html
+#post/list.html
+
+<!-- 좋아요 버튼 추가 -->
+<div class="card-body">
+    <a href="{% url 'posts:like' post.id %}">
+        <!-- 해당 유저가 like를 했으면, -->
+        {% if user in post.like_users.all %}
+        <i class="fas fa-heart"></i>
+        <!--아니면-->
+        {% else %}
+        <i class="far fa-heart"></i>
+        {% endif %}
+    </a>
+    <p class="card-text">
+        {{ post.like_users.count }}명이 좋아합니다.
+    </p>
+</div>
+```
+
+
+
+## 로그인 구현
+
+```html
+#templates/nav.html
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#"><i class="fab fa-instagram"></i> Instagram</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ml-auto">
+      <!-- 만약 로그인이 되어 있으면 -->
+      {% if user.is_authenticated %}
+        <li class="nav-item">
+          <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">{{ user.username }}</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'accounts:logout' %}">로그아웃</a>
+        </li>
+      
+      <!-- 아니면 -->
+      {% else %}
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'accounts:login' %}">로그인</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'accounts:signup' %}">회원가입</a>
+      </li>
+      
+      {% endif %}
+    </ul>
+  </div>
+</nav>
+```
+
+`python manage.py startapp accounts`
+
+```python
+# settings.py
+INSTALLED_APPS = [
+    'accounts',
+]
+```
+
+```python
+# urls.py 메인 urls 관문
+urlpatterns = [
+    ...
+    path('accounts/', include('accounts.urls')),
+]
+```
+
+```python
+# accounts/urls.py
+app_name = "accounts"
+
+urlpatterns = [
+    path('login/', vies.login, name="login"),
+    path('logout/', views.logout, name="logout"),
+    path('signup/', views.signup, name="signup"),
+]
+```
+
+* **next** 핸들링: `@login_required`
+
+```python
+# accounts/views.py
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login as auth_login # django에서 가져와 씀
+from django.contrib.auth import logout as auth_logout
+
+def login(request):
+    if request.method == "POST":
+        # POST: 실제 로그인(세션에 유저 정보 추가)
+        form = AuthenticationForm(request, request.POST)
+        if form.is_valid():
+            auth_login(request, form.get_user())
+            return redirect(request.GET.get('next') or 'posts:list')
+            # (parameter GET에서 받았을 때 'next'가 있으면 '/posts/13/like/') or 'posts:list'
+            # next= 정의되어 있으면, 해당하는 url로 리다이렉트
+            # else: 'posts:list'
+    else:
+        # GET: 로그인 정보 입력
+        form = AuthenticationForm()
+        
+    return render(request, 'accounts/login.html', {'form': form})
+    
+
+def logout(request):
+    auth_logout(request)
+    return redirect('posts:list')
+```
+
+```html
+# accounts/login.html
+
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block body %}
+<h1 class="text-center">로그인</h1>
+<form method="POST">
+  {% csrf_token %}
+  {% bootstrap_form form %}
+  <button class="btn btn-primary">로그인</button>
+</form>
+{% endblock %}
+```
+
+
+
+
+
+## 회원가입
+
+```html
+# accounts/signup.html
+
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block body %}
+<h1 class="text-center">회원가입</h1>
+<form method="POST">
+  {% csrf_token %}
+  {% bootstrap_form form %}
+  <button class="btn btn-primary">회원가입</button>
+</form>
+{% endblock %}
+```
+
+```python
+# accounts/views.py
+from django.contrib.auth.forms import UserCreationForm
+
+def signup(request):
+    if request.method == "POST":
+        # POST: 유저 등록
+        form = UserCreationForm(request.POST) # UserCreationForm이 알아서 column에 넣어주고
+        if form.is_valid():
+            user = form.save()
+            # auth_login(request, form.get_user()) 로그인과 달리 form 형식 달라서 이거 안됨
+            auth_login(request, user) # signup 후 바로 로그인
+            redirect('posts:list')
+    else:
+        # GET: 유저 정보 입력
+        form = UserCreationForm()
+        
+    return render(request, 'accounts/signup.html', {'form': form})
+```
+
+
+
+## 프로필 페이지
+
+* 유저들의 정보가 들어가 있는 *people* 페이지
+
+```python
+#instagram/urls.py
+from accounts import views as accounts_views
+
+urlpatterns = [
+    ...
+    path('<str:username>/', accounts_views.people, name="people")
+]
+```
+
+```python
+#accounts/views.py
+from django.contrib.auth import get_user_model
+
+def people(request, username):
+    # 사용자에 대한 정보
+    people = get_object_or_404(get_user_model(), username=username) # 모델과 keyword 인자로 가능
+    # 1. settings.AUTH_USER_MODEL - 이건 views를 쓰기 힘듦
+    # 2. get_user_model() 실제 user클래스를 바로 리턴시켜줌 - 되도록이면 이거 쓰자
+    # 3. User (django.contrib.auth.models에 들어가있는) 그냥 가져오기 - 안쓰는게 좋아
+    return render(request, 'accounts/people.html', {'people': people})
+```
+
+```html
+#accounts/people.html
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="container">
+  <h1>{{ people.username }}</h1>
+  <div class="row">
+    {% for post in people.post_set.all %}
+    <div class="col-4">
+      <img src="{{ post.image.url }}" class="img-fluid">
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
 ```
 
