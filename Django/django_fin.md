@@ -198,8 +198,10 @@ INSTAGRAM/ #최상위 폴더
 
 from django.contrib import admin
 from django.urls import path, include
+from posts import views as posts_views
 
 urlpatterns = [
+    path('', posts_views.list, name="root"), # 아무것도 없으면 바로 가게해
     path('admin/', admin.site.urls),
     path('posts/', include('posts.urls')),
 ]
@@ -1118,6 +1120,158 @@ def password(request):
 
 
 
+### Recap
+
+* Database Relationship
+    - 관계 없음
+    - 1:1 (칼럼으로 추가해도 동일한 효과) - column쓸 수 있으니 자주 쓰지 않아
+      - user_id와 mapping하면 됨
+    - 1:N
+    - M:N
+
+* User (`django.contrib.auth`)
+  * 회원가입: `UserCreationForm`
+  * 로그인: `AuthenticationForm`
+  * 정보변경: `UserChangeForm`
+  * 비번변경: `PasswordChangeForm`
+  * 회원에 대한 정보 추가: `dasdf` - 1:1
+
+
+
+## 1:1
+
+* 1:1
+  * column에선 User.objects.first().description
+  * 1:1에선 User.objects.first().profile.description
+    * User 모델을 건드리고싶지 않을 때, 외부 모델 mapping
+      * 새로운 column을 추가하면 null값을 넣는다 하더라도 db가 매우 크면 업데이트하기가 힘듦
+        * 1:1모델을 추가
+  * Django에서 User모델 제공했기 때문에 바꾸기가 힘듦
+    * 1:1 Model 추가해서 관리
+
+```python
+#accounts/models.py
+from django.conf import settings
+
+class Profile(models.Model): # user_id와 1:1 관계
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    description = models.TextField(blank=True)
+    nickname = models.CharField(max_length=40, blank=True)
+```
+
+`python manage.py makemigrations` `python manage.py migrate`
+
+`python manage.py sqlmigrate accounts 0001`
+
+```bash
+BEGIN;
+--
+-- Create model Profile
+--
+CREATE TABLE "accounts_profile" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "description" text NOT NULL, "nickname" varchar(40) NOT NULL, "user_id" integer NOT NULL UNIQUE REFERENCES "auth_user" ("id") DEFERRABLE INITIALLY DEFERRED);
+COMMIT; # notice the UNIQUE
+```
+
+
+
+```python
+#accounts/views.py
+from .models import Profile
+def signup(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            Profile.objects.create(user=user) # 1:1 profile도 함께 만들어줌
+            auth_login(request, user)
+            return redirect('posts:list')
+    else:
+        form = UserCreationForm()
+    return render(request, 'accounts/signup.html', {'form': form})
+```
+
+```python
+#accounts/forms.py
+from django import forms
+from .models import Profile
+
+class ProflieForm(forms.ModelForm): # user profile 수정하기 위해
+    class Meta:
+        model = Profile
+        fields = ['description', 'nickname']
+```
+
+```python
+#accounts/views.py
+from .forms import ProflieForm
+def update(request):
+    if request.method == "POST":
+        user_change_form = CustomUserChangeForm(request.POST, instance=request.user)
+        profile_form = ProfileForm(request.POST, instance=request.user.profile)
+        if user_change_form.is_valid() and profile_form.is_valid():
+            user = user_change_form.save()
+            profile_form.save()
+            return redirect('people', user.username)
+    else:
+        user_change_form = CustomUserChangeForm(instance=request.user)
+        
+        # instance에넣어줄 정보가 있는 User가 있고, 없는 User도 있다.
+        # if Profile.objects.get(user=request): # 프로필이 있냐 없냐
+        #     profile = Profile.objects.get(user=request) # 있으면 가져와
+        # else:
+        #     profile = Profile.objects.create(user=request.user) # 유저의 정보가 들어있는 비어있는 profile
+        profile, created = Profile.objects.get_or_create(user=request.user) # return이 tuple형 (get성공, created)
+        profile_form = ProfileForm(instance=profile) # profile도 같이 수정해주기
+        
+        context = {
+            'user_change_form': user_change_form,
+            'profile_form': profile_form,
+        }
+        return render(request, 'accounts/update.html', context)
+```
+
+```html
+#accounts/update.html
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block body %}
+<h1 class="text-center">회원 정보 변경</h1>
+<form method="POST">
+  {% csrf_token %}
+  {% bootstrap_form user_change_form %}
+  {% bootstrap_form profile_form %}
+  <button class="btn btn-primary">수정</button>
+</form>
+{% endblock %}
+```
+
+```html
+#accounts/people.html
+{% block body %}
+<div class="container">
+  <h1>{{ people.username }}</h1>
+  <p>{{ people.first_name }} {{ people.last_name }}</p>
+  <strong>{{ people.profile.nickname }}</strong>
+  <p>{{ people.profile.description }}</p>
+  {% if user == people %}
+  <a class="btn btn-info" href="{% url 'accounts:update' %}">회원 정보 변경</a>
+  <a class="btn btn-info" href="{% url 'accounts:password' %}">비밀번호 변경</a>
+  <a class="btn btn-danger" href="{% url 'accounts:delete' %}">회원 탈퇴</a>
+  {% endif %}
+  <div class="row">
+    {% for post in people.post_set.all %}
+    <div class="col-4">
+      <img src="{{ post.image.url }}" class="img-fluid">
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+```
+
+
+
 
 
 ## Follow
@@ -1125,7 +1279,98 @@ def password(request):
 * M:N 
   * User가 User를 팔로우
 
+```html
+#accounts/people.html
+...
+<h1>
+    {{ people.username }} 
+    {% if not user.is_anonymous and user != people %}
+    {% if user in people.follows.all %}<a class="btn btn-success" href="{% url 'accounts:follow' people.id %}">Following</a>
+    {% else %}<a class="btn btn-primary" href="{% url 'accounts:follow' people.id %}">Follow</a>{% endif %}
+    {% endif %}
+</h1>
+...
+```
 
+
+
+```
+modeling
+
+AbstractBaseUser(할머니)
+AbstractUser(어머니)
+User|User(내가 만든 유저)
+```
+
+
+
+```python
+#accounts/models.py
+from django.contrib.auth.models import AbstractUser
+class User(AbstractUser): # 새로 정의한 유저는 이것 -> settings.py에서 django에게 알려줘야해
+    follows = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="followings")
+```
+
+```python
+#instagram/settings.py
+# user override - app 전체에서 쓰고있는 User을 accounts.User로 바꾼다
+AUTH_USER_MODEL = "accounts.User"
+```
+
+```python
+#accounts/forms.py
+from django.contrib.auth.forms import UserCreationForm
+# 기존의 UserCreationForm을 override
+class CustomUserCreationForm(UserCreationForm): # custom User model을 위한 creation form
+    class Meta(UserCreationForm.Meta):
+        model = get_user_model()
+        # fields = UserCreationForm.Meta.fields # 원래 있던 fields 그대로 써
+```
+
+```python
+#accounts/views.py
+from .forms import CustomUserCreationForm
+def signup(request):
+    if request.method == "POST":
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            Profile.objects.create(user=user)
+            auth_login(request, user)
+            return redirect('posts:list')
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'accounts/signup.html', {'form': form})
+```
+
+* User을 새롭게 설정했기 때문에 DB 날리자
+
+`python manage.py makemigrations` `python manage.py migrate`
+
+`python manage.py createsuperuser`
+
+```python
+#accounts/urls.py
+...
+path('<int:user_id>/follow/', views.follow, name="follow"),
+```
+
+```python
+#accounts/views.py
+from django.contrib.auth.decorators import login_required
+@login_required
+def follow(request, user_id):
+    person = get_object_or_404(get_user_model(), pk=user_id)
+    # 만약 현재 유저가 해당 유저를 이미 팔로우 하고 있었으면,
+    # -> 팔로우 취소
+    # 아니면,
+    # -> 팔로우
+    if request.user in person.follows.all():
+        person.follows.remove(request.user)
+    else:
+        person.follows.add(request.user)
+    return redirect('people', person.username)
+```
 
 
 
