@@ -1285,8 +1285,9 @@ def update(request):
 <h1>
     {{ people.username }} 
     {% if not user.is_anonymous and user != people %}
-    {% if user in people.follows.all %}<a class="btn btn-success" href="{% url 'accounts:follow' people.id %}">Following</a>
-    {% else %}<a class="btn btn-primary" href="{% url 'accounts:follow' people.id %}">Follow</a>{% endif %}
+      <!-- 만약 현재 접속한 유저가 해당 페이지의 유저를 이미 팔로우 한 경우 following else follow -->
+      {% if user in people.follows.all %}<a class="btn btn-outline-primar" href="{% url 'accounts:follow' people.id %}">Following</a>
+      {% else %}<a class="btn btn-primary" href="{% url 'accounts:follow' people.id %}">Follow</a>{% endif %}
     {% endif %}
 </h1>
 ...
@@ -1373,4 +1374,131 @@ def follow(request, user_id):
 ```
 
 
+
+#### Django Field Lookup
+
+> <https://docs.djangoproject.com/en/2.1/ref/models/querysets/#id4>
+>
+> DB(직접 DB 관리) &rarr; DBMS(대리로 관리 db management system: SQL) &rarr; ORM(직접 관리 싫어; DB한테 전달하기 전에 필터링 및 두 번 최적화)
+
+```python
+exact, iexact, contains, icontains, in, gt[e], lt[e], startswith, endwith # 앞의 i는 
+```
+* `Post.objects.get(id=1)` &rarr;  `Post.objects.get(id__iexact)`
+* `Post.objects.filter(content__contains="하")`
+  * `filter` 여러 개, `get` 한 개
+* `Q`: query-set control
+  * Query들을 합칠 때 쓰는 것
+
+
+* 내가 followers한테만 내 글을 보여주겠다
+
+```python
+#posts/views.py
+from django.db.models import Q
+
+@login_required
+def list(request):
+    # # 1. 내가 팔로우한 사람들의 Post만 보여줌
+    # posts = Post.objects.filter(user_id__in=request.user.follows.all()) # filter 여러개 return
+    # # print('posts: ', posts.query) # query문 확인
+    # # 2. (1) + 내가 작성한 Post도 보여줌
+    # my_posts = request.user.post_set.all()
+    # # print('my_posts: ', my_posts.query)
+    # posts += my_posts
+    
+    # query 여러 개를 합치는 Q
+    posts = Post.objects.filter(
+        Q(user_id__in=request.user.followings.all()) | # related_name='followings'
+        Q(user_id=request.user)
+        )
+    # print('fin_posts: ', posts.query)
+    
+    # Comment를 작성하는 form 보여줌
+    form = CommentForm()
+    
+    return render(request, 'posts/list.html', {'posts': posts, 'form': form})
+```
+
+
+
+### Image processing
+
+`pip install pillow` `pip install django-imagekit`
+
+```python
+#settings
+INSTALLED_APPS = [
+    ...
+    'imagekit',
+]
+```
+
+```python
+#posts/models.py
+from imagekit.models import ProcessedImageField, ImageSpecField
+from imagekit.processors import ResieToFit
+
+class Post(models.Model):
+    ...
+    # resized image
+    image = ProcessedImageField(processors=[ResizeToFit(width=960, upscale=False)], format='JPEG')
+    image_thumbnail = ImageSpecField(source='image', processors=[ResizeToFit(width=320, upscale=False)], format='JPEG', options={'quality': 60})
+    # date option
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+```
+
+`python manage.py makemigrations` `python manage.py migrate`
+
+
+
+#### 프로파일 사진
+
+```python
+#accounts/models.py
+class Profile(models.Model): # user_id와 1:1 관계
+    ...
+    image = models.ImageField(blank=True)
+```
+
+`python manage.py makemigrations` `python manage.py migrate`
+
+```python
+#accounts/forms.py
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['description', 'nickname', 'image']
+```
+
+```html
+#accounts/update.html
+<h1 class="text-center">회원 정보 변경</h1>
+<form method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  {% bootstrap_form user_change_form %}
+  {% bootstrap_form profile_form %}
+  <button class="btn btn-primary">수정</button>
+</form>
+```
+
+```python
+#accounts/views.py
+def update(request):
+    if request.method == "POST":
+        user_change_form = CustomUserChangeForm(request.POST, instance=request.user)
+        profile_form = ProfileForm(request.POST, instance=request.user.profile, files=request.FILES)
+        ...
+```
+
+```html
+#accounts/people.html
+{% block body %}
+<div class="container">
+  <h1>
+    {% if people.profile.image %}<img src="{{ people.profile.image.url }}" width="250">
+    {% else %}<img src="https://t4.ftcdn.net/jpg/00/64/67/27/240_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg">{% endif %}
+...
+```
 
