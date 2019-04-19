@@ -1286,7 +1286,7 @@ def update(request):
     {{ people.username }} 
     {% if not user.is_anonymous and user != people %}
       <!-- 만약 현재 접속한 유저가 해당 페이지의 유저를 이미 팔로우 한 경우 following else follow -->
-      {% if user in people.follows.all %}<a class="btn btn-outline-primar" href="{% url 'accounts:follow' people.id %}">Following</a>
+      {% if user in people.follows.all %}<a class="btn btn-outline-primary" href="{% url 'accounts:follow' people.id %}">Following</a>
       {% else %}<a class="btn btn-primary" href="{% url 'accounts:follow' people.id %}">Follow</a>{% endif %}
     {% endif %}
 </h1>
@@ -1308,6 +1308,7 @@ User|User(내가 만든 유저)
 ```python
 #accounts/models.py
 from django.contrib.auth.models import AbstractUser
+from django.conf import settings
 class User(AbstractUser): # 새로 정의한 유저는 이것 -> settings.py에서 django에게 알려줘야해
     follows = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="followings")
 ```
@@ -1500,5 +1501,42 @@ def update(request):
     {% if people.profile.image %}<img src="{{ people.profile.image.url }}" width="250">
     {% else %}<img src="https://t4.ftcdn.net/jpg/00/64/67/27/240_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg">{% endif %}
 ...
+```
+
+
+
+#### Comment Deletion
+
+```python
+#posts/views.py
+@login_required
+def delete_comment(request, post_id, comment_id):
+    comment = get_object_or_404(Comment, pk=comment_id)
+    if comment.user == request.user:
+        comment.delete()
+    return redirect('posts:list')
+```
+
+```python
+#posts/urls.py
+path('<int:post_id>/comment/<int:comment_id>/delete', views.delete_comment, name="delete_comment")
+```
+
+```html
+#posts/list.html
+<div class="card-body">
+    {% for comment in post.comment_set.all %}
+    <div class="card-text">
+        <strong>{{ comment.user.username }}</strong> {{ comment.content }}
+        <!-- Comment 지우기 -->
+        {% if comment.user == request.user %}
+        <a href="{% url 'posts:delete_comment' post.id comment.id %}">[X]</a>
+        {% endif %}
+    </div>
+    <!-- else와 유사한 비어있을 때 조건문 empty -->
+    {% empty %}
+    <div>댓글이 없습니다.</div>
+    {% endfor %}
+</div>
 ```
 

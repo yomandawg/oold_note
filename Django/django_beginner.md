@@ -21,7 +21,7 @@
 
 ## 실행 코드
 
-* `zzu.li/install-pyenv`
+* zzu.li/install-pyenv
 * `pyenv`와 version 관리 등 사용하기 쉽게 하는 command들
 
 ```bash
