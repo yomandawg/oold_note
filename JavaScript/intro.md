@@ -128,5 +128,80 @@ for (const z=0; z<10; z++){ // can't do
 
 
 
+```js
+names = ["ray", "ash"]
+names.length // 길이
+names.reverse() // 뒤집기
+names.push("jik") // append
+names.pop() // "jik"
+names.shift() // popleft()
+names.unshift() // insert(0, item)
+names.include('jik') // True or False
+names.join("와 ") // string화해서 "asdf와 B와 A" different from python join
+["john", 123, true, [1,2,3]] // (4) ["john", 123, true, Array(3)]
+```
 
+
+
+```js
+// dictionary
+const student = {'name': 'john', 'age': 20, 'isMale': true}
+student['name'] // "john" == student.get('name')
+
+const student2 = {name:'john', age:20, isMale:true} // key string으로 안해도 됨
+student2["name"] // 'john'
+student2.name // 'john'
+```
+
+
+
+```js
+let i = 0;
+while (i < 10) {
+    console.log(i);
+    i += 1;
+} // loop: asynchronous needed
+```
+
+```js
+if (age > 30 ) {
+    console.log('asdf');
+} else if (age < 20) {
+    console.log('eeee');
+} else {
+    console.log('asdfdeee');
+}
+```
+
+
+
+```js
+function sum(a, b) {
+    return a+b
+}
+sum(3, 5) // 8
+```
+
+```js
+firstName = 'asdf'; lastName = 'ererw';
+let fullName = firstName + lastName; // string concatenation
+let introduction = 'ㅎㅇ 저는 ${firstName} ${lastName}'; // string inerpolator
+```
+
+
+
+```js
+const me = {
+    bane: 'john',
+    phone: '01234',
+    apple: {
+        iPad: '2018pro',
+        iPhone: '6s+',
+        macBook: '2018pro',
+    }
+}
+me.address = "강남구" // 객체는 mutable
+me.apple.yo = 'asdf'
+me // {bane: "john", phone: "01234", apple: {…}, address: "강남구"}
+```
 
