@@ -86,3 +86,8 @@ document.write('<p>qweqwtqw</p>')
 * 원시자료형 제외 모든 것이 객체(사용자 정의 자료형, Array, Function, Object all of them are objects) &rarr; (im)mutable
   * `"가나다라마바사".length`
   * `tuple` `string` immutable, else mutable
+
+
+
+
+
