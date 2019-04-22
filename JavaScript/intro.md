@@ -89,5 +89,42 @@ document.write('<p>qweqwtqw</p>')
 
 
 
+```js
+const name = 'ray'
+name = 'dongju' // time-error (constant not changeable)
+
+let age = '27'
+age = '28' // age binded to 28
+```
+
+* `const` - 변화 불가능
+* `let` - 변화 가능
+
+
+
+`for (초기조건, 종료조건, 증강식)`
+
+```js
+for (var i = 0; i < 10; i++) {
+    console.log(i)
+}
+/*
+for var
+output: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+i = 10; // 조건이 끝난 다음에 증감
+*/
+for (let j = 0; j < 10; j++) {
+    console.log(j)
+}
+/*
+for let
+output: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+j doesn't exist // j 소멸
+*/
+for (const z=0; z<10; z++){ // can't do
+    console.log(z)
+}
+```
+
 
 
