@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Vue Start!</title>
+</head>
+<body>
+  <div id="app">
+
+
+
+    <span v-html="msg"></span>
+    <p>{{ age }}</p>
+
+
+    <ul>
+      <li v-for="todo in todos">{{ todo }}</li>
+    </ul>
+
+
+    <p v-if="isMarried">결혼했다</p>
+
+
+
+    <h2>게시판</h2>
+    <ol>
+      <li v-for="post in posts">{{ post.id }}, {{ post.content }}</li>
+    </ol>
+
+
+
+    <ol>
+      <li v-for="post in posts" v-if="post.checked">
+        <ul>
+          <li v-for="c in post">{{ c }}</li>
+        </ul>
+      </li>
+    </ol>
+
+
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue"></script>    
+  <!-- js below vue.js -->
+  <script>
+    // new object
+    let app = new Vue({
+      // 주어(html element)
+      el: '#app',
+      // 목적어(data)
+      data: {
+        msg: '<h1>happy hacking</h1>',
+        age: 34,
+        todos: ['Vue.js 배우기', 'Javascript 복습하기', '어플리케이션 개발하기'], // 자료형 넣기 가능
+        isMarried: false,
+        posts: [{ // nested objects
+          id: 1,
+          content: '1번글',
+          checked: false, // boolean flag
+        }, {
+          id: 2,
+          content: '2번글',
+          checked: false
+        }, {
+          id: 3,
+          content: '3번글',
+          checked: true
+        }],
+        ssafy: {
+          name: 'SSAFY',
+          company: 'Samsung'
+        }
+      },
+      // 서술어(function)
+      methods: {
+        plus: function () {
+          this.age += 1 // this. 객체의 data들을 지칭
+        }
+      },
+      filters: {},
+      computed: {},
+      watch: {},
+      directives: {},
+    })
+
+    console.log(app)
+  </script>
+</body>
+</html>
