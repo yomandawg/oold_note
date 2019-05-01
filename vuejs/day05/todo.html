@@ -11,24 +11,81 @@
     <h1>{{ header }}</h1>
     <!-- form을 통해 데이터 전송 == 페이지 변환 -->
     <!-- SPA의 경우엔 form 거의 안씀; js로 한다 -->
-    <h2>{{ subheader }}</h2>
-    <p>{{ content }}</p>
-    <p>{{ content }}</p>
-    <p>{{ content }}</p>
+
+    <!-- v-once하면 한 번만 render -->
+    <!-- 사용자 정의 filter - 인자 | 필터 -->
+    <h2 v-once>{{ subheader | capitalize }}</h2>
+
+    <div>
+      <!-- <a :href="linkSource"> -->
+      <a v-bind:href="linkSource"><img v-bind:src="imageSource" width=300 height=auto></a>
+    </div>
+
+    <h3>{{ hello() }}</h3>
+
     <input v-model="content">
+    <button v-on:click="addTodo">추가</button>
+    <!-- <button v-on="{click:addTodo, mouseenter:addTodo}">추가</button> -->
+    <!-- <button @click="addTodo">추가</button> -->
+
+    <ul>
+      <li v-for="todo in todos">{{ todo }}</li>
+    </ul>
 
   </div>
   <script src="https://cdn.jsdelivr.net/npm/vue"></script> 
   <script>
+    const STORAGE_KEY = 'vue-app'
+    let todoStorage = {
+      fetch: function() {
+        let todos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
+        return todos
+      },
+      save: function(todos) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
+      }
+    }
+
+    // todoStorage.save(todos)
+
     let app = new Vue({
       el: "#app",
       data: {
         header: 'Todo App',
-        subheader: '이것은 Todo App입니다',
+        subheader: 'this is todo app',
         content: '할일을 입력해주세요',
+        imageSource: 'https://yt3.ggpht.com/a/AGF-l7-UoWwYrANzr-gMWW_U016sPvDQEbnwXxKutg=s900-mo-c-c0xffffffff-rj-k-no',
+        linkSource: 'https://www.samsung.com/',
+        todos: todoStorage.fetch(),
       },
       methods: {
-
+        hello: function() {
+          this.subheader = "What do you need to do?" // previous element 바꾸기 가능
+          return this.subheader
+        },
+        addTodo: function() {
+          this.todos.push(this.content)
+          this.content = ''
+        }
+      },
+      filters: {
+        capitalize: function(val) {
+          // val 문자열/숫자/... 를 capitalize하는 함수
+          if (!val) return ''
+          val = val.toString()
+          return val.replace(val.charAt(0), val.charAt(0).toUpperCase())
+        }
+      },
+      // 데이터의 변화 상태를 지켜본다
+      // {{데이터}}가 변할 때, {}를 하게 만듦
+      // todos 배열에 새로운 데이터가 들어오면, `localStorage`에 저장
+      watch: {
+        todos: {
+          handler: function (todoList) {
+            console.log(todoList)
+            todoStorage.save(todoList)
+          }
+        }
       }
     })
   </script>

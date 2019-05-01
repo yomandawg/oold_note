@@ -57,3 +57,34 @@ app.plus() // method 실행
 > M(model) V(view) VM(view model)
 * Vue.js - VM만 조작
 * 데이터를 직접 관리
+
+
+
+
+
+### VM (Vue model)
+- data만 넘겨주면 알아서 rendering 해준다.
+- data 형태
+`el`
+`data`
+`methods`
+`filters`
+`watch`
+`completed`
+`directives`
+
+#### directives
+`v-if`
+`v-for`
+`v-model`
+`v-html`
+`v-on`
+`v-bind`
+`v-once`
+`v-free`
+
+
+
+`localStorage.setItem(key, value)` - value string 형태로 저장
+`localStorage.getItem(key)`
+`localStorage.removeItem(key)`
