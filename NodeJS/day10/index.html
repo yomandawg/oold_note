@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <!-- vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <!-- axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        img {
+            width: 250px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="main">
+        <input id="one" type="radio" v-model="picked" value="Meow~">
+        <label for="one">고양이</label>
+        <br>
+        <input id="two" type="radio" v-model="picked" value="Bow!">
+        <label for="two">댕댕이</label>
+        <br>
+        <span>{{ picked }}</span>
+        <br>
+        <img v-bind:src="image"/>
+        <!-- <input type="text" v-model="test"> -->
+    </div>
+    <script>
+        // // AXIOS
+        // // 고양이
+        // const getCatImage = async function() {
+        //     const URL = `https://api.thecatapi.com/v1/images/search`
+        //     const response = await axios.get(URL)
+        //     const catImage = response.data[0].url
+        //     console.log(catImage)
+        // }
+        // // 강아지
+        // const getDogImage = async function() {
+        //     const URL = `https://dog.ceo/api/breeds/image/random`
+        //     const response = await axios.get(URL)
+        //     const dogImage = response.data.message
+        //     console.log(dogImage)
+        // }
+
+        // VUE
+        const dogAndCat = new Vue({
+            el: '#main',
+            data: {
+                picked: '',
+                image: '', // URL
+                test: '',
+            },
+            watch: {
+                picked: function(value) {
+                    if (value === "Meow~") {
+                        this.getCatImage()
+                    } else {
+                        this.getDogImage()
+                    }
+                }
+                // test: function(newValue, preValue) {
+                //     console.log(newValue, preValue)
+                // }
+            },
+            methods: {
+                getCatImage: async function() {
+                    const URL = `https://api.thecatapi.com/v1/images/search`
+                    const response = await axios.get(URL)
+                    const catImage = response.data[0].url
+                    // async await 비동기이기 때문에 `return promise`이므로 그냥 자체 this.image 요소를 바꿔야함
+                    this.image = catImage
+                },
+                getDogImage: async function() {
+                    const URL = `https://dog.ceo/api/breeds/image/random`
+                    const response = await axios.get(URL)
+                    const dogImage = response.data.message
+                    this.image = dogImage
+                }
+            }
+        })
+    </script>
+</body>
+</html>
