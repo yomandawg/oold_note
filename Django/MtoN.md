@@ -127,3 +127,4 @@ resort.clients.remove(Client.objects.last())
 
 # 매우 간편 + 중복 방지도 되어있음!
 ```
+
