@@ -26,7 +26,7 @@
 
 ```python
 # instagram/settings.py
-import django-heroku
+import django_heroku
 ...
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # static 파일 관리
 
@@ -64,7 +64,7 @@ python-3.6.7 // python-3.6.7 깔아줘
 * `Procfile` &rarr; for `gunicorn`
 
 ```json
-// INSTAGRAM/procfile
+// INSTAGRAM/Procfile
 
 web: gunicorn instagram.wsgi // projectname.wsgi
 ```
