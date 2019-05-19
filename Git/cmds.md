@@ -201,3 +201,124 @@ echo $phrase
 echo "yo man!"
 ```
 
+
+
+#### Conditionals
+
+```sh
+if [ $index -lt 5]
+then
+  echo $index
+else
+  echo 5
+fi
+```
+
+* `-eq` equal
+* `-ne` not eqaul
+* `-le` less than or equal
+* `-lt` less than
+* `-ge` greater than or equal
+* `-gt` greater than
+* `-z` is null
+
+```sh
+if [ "foo" == "$bar" ]
+```
+
+```sh
+for word in $paragraph
+do
+  echo $word
+done
+
+while [ $index -lt 5 ]
+do
+  echo $index
+  index=$((index + 1))
+done
+
+until [ $index -eq 5 ]
+do
+  echo $index
+  index=$((index + 1))
+done
+```
+
+```sh
+echo "Guess a number"
+read number
+echo "You guessed $number"
+```
+
+```sh
+#!/bin/bash
+first_greeting="Nice to meet you!"
+later_greeting="How are you?"
+greeting_occasion=0
+echo "How many times should I greet?"
+read greeting_limit
+while [ $greeting_occasion -lt $greeting_limit ]
+do
+  if [ $greeting_occasion -lt 1 ]
+  then
+    echo $first_greeting
+  else
+    echo $later_greeting
+  fi
+  greeting_occasion=$((greeting_occasion +1))
+done
+```
+
+first input to cmd: `alias saycolors='./saycolors.sh' "green"'`
+
+`./script.sh 5 #greets 5 times`
+
+
+
+### Build a Build Script
+
+* bash script
+
+```sh
+#!/bin/bash
+
+echo "Begininning the build!"
+
+firstline=$(head -n 1 source/changelog.md)
+
+read -a splitfirstline <<< $firstline
+
+version=${splitfirstline[1]}
+echo "You are building version" $version
+
+echo 'Do you want to continue? (enter "1" for yes, "0" for no)'
+read versioncontinue
+
+if [ $versioncontinue -eq 1 ]
+then
+  echo "OK"
+else
+  echo "Please come back when you are ready"
+fi
+
+for filename in source/*
+do
+  echo $filename
+  if [ "$filenmae" == "source/secretinfo.md" ]
+  then
+    echo "Not copying" $filename
+  else
+    echo "Copying" $filename
+    cp $filename build/.
+  fi
+done
+
+cd build/
+echo "Build version $version contains:"
+ls
+cd ..
+```
+
+
+
