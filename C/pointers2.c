@@ -133,6 +133,16 @@ void nameofarr() {
     // arr은 포인터 상수 형태로 되어 있다. (int* const)
 }
 
-/* [] 연산자
+// [] 연산자 - 왼쪽 우선
+void bracket() {
+    int arr[5] = {1, 2, 3, 4, 5};
 
-*/
+    printf("a[3] : %d \n", arr[3]);
+    printf("*(a+3) : %d \n", *(arr + 3)); // []연산자가 쓰이면 자동적으로 포인터 형태로 바꿔 처리
+    // *(arr + 3) == arr[3]
+    
+    printf("3[arr]: %d \n", 3 [arr]); // []연산자로 3[arr]을 *(3 + arr)로 바꾼다
+    printf("*(3+a) : %d \n", *(arr + 3));
+
+    return 0;
+}
