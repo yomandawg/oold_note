@@ -12,6 +12,15 @@ class Date {
         void add_year(int inc);
         void show_date();
 
+        // default 생성자
+        Date() {
+            year = 2012;
+            month = 7;
+            day = 12;
+        }
+
+        // 생성자 오버로딩
+
         // <생성자> 객체 생성시 자동으로 호출되는 함수
         // 이 때 자동으로 호출되며 객체를 초기화해주는 역할
         Date(int _year, int _month, int _day) {
@@ -108,4 +117,28 @@ int main() {
     day.add_year(10);
     day.show_date();
     return 0;
+}
+
+
+int test() {
+    // 처음에 단순히 set_date 함수를 이용해서 객체를 초기화 하였을 때
+    // 생성자를 명시하지 않았다. 즉, 처음에 생성자 정의를 하지 않은 채
+    Date day; // 로 했을 때, 생성자가 호출 되는가? YES!
+    // default constructor 생성자가 호출된다.
+    // 이는 인자를 하나도 가지지 않은 생성자인데, 클래스에서 사용자가 어떠한 생성자도
+    // 명시적으로 정의하지 않을 경우 컴파일러가 자동으로 추가해주는 생성자
+    // 사용자가 어떤 다른 생성자를 추가한 순간 컴파일러는 자동으로 다폴트 생성자를
+    // 삽입하지 않는다
+    // 물론 자동 생성시 쓰레기값이 나온다 - 그래서 디폴트 정의해야함
+
+    Date day2(); // 이렇게 ()를 하면 디폴트 생성자 객체를 생성하는 게 아니라
+    // 리턴값이 Date이고 인자가 없는 함수 day3을 정의하게 된 것으로 인식
+    // 이는 암시적 표현으로 객체 선언시 염두해야함
+}
+
+
+int test2() {
+    // 생성자 오버로딩을 통해 사용자가원하는 생성자를 호출할 수 있다.
+    Date day = Date(); // default constructor
+    Date day2(2012, 10, 31); // custom constructor
 }
