@@ -21,7 +21,10 @@ class Marine {
         Marine(); // default constructor
         Marine(int x, int y, const char* marine_name); // 이름 지정 constructor
         Marine(int x, int y); // custom constructor
-        ~Marine();
+        ~Marine(); // 소멸자
+        // 소멸자는 인자를 아무것도 가지지 않는다
+        // 소멸하는 객체에 인자를 넘길 필요가 없다
+        // 소멸자는 오버로딩도 되지 않는다
 
         int attack(); // damage return
         void be_attacked(int damage_earn); // 입는 데미지
@@ -73,6 +76,16 @@ void Marine::show_status() {
     std::cout << " Location : ( " << coord_x << " , " << coord_y << " ) " << std::endl;
     std::cout << " HP : " << hp << std::endl;
 }
+Marine::~Marine() {
+    std::cout << name << " 의 소멸자 호출!" << std::endl;
+    if (name != NULL) {
+        delete[] name;
+    }
+}
+// 위와 같이 name이 NULL이 아닐 경우(즉 동적으로 할당이 되었을 경우)
+// delete로 name을 삭제 (참고로 name 자체가 char의 배열로 동적 할당이기 때문에
+// delete 역시 delete[] name, 즉 []를 써줘야 함)
+
 
 int main() {
     Marine marine1(2, 3);
@@ -107,7 +120,36 @@ int test() {
 
     delete marines[0]; // 동적 할당 메모리는 언제나 해제해야함
     delete marines[1];
+    // 객체가 소멸될 때 소멸자가 호출된다.
 
     // Main함수 끝에 marine이 delete될 때, (생성한 객체가 소멸될 때 자동으로 호출되는 함수)
     // 소멸자 Destructor!
 }
+
+
+
+class Test {
+    char c;
+
+    public:
+        Test(char _c) { // a 생성자
+            c = _c;
+            std::cout << "생성자 호출 " << c << std::endl;
+        }
+        ~Test() { std::cout << "소멸자 호출 " << c << std::endl; }
+};
+
+void simple_function() { Test b('b'); } // b 객체 생성
+
+int main() {
+    Test a('a'); // a 객체 생성(a 생성자 호출)
+    simple_function();
+    // simple_function 호출 후 객체 생성 후 종료될 때
+    // 지역 객체이기 때문에 b 소멸: 소멸자 호출
+}
+// 객체가 다른 부분에 영향을 끼치지 않도록 깔끔하게 소멸되는 일은
+// 매우 중요한 일! 소멸자가 하는 역할은 객체가 동적으로 할당받은
+// 메모리를 해제하는 일이라고 볼 수 있다
+// 그 외에도 쓰레드 사이에서 lock된 것을 푸는 역할 등등..
+// default destructor도 있다 - 내부에서 아무런 작업도 수행하지 않는다
+// 소멸자가 필요없으면 굳이 써줄 필요가 없다.
